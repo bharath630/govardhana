@@ -5,72 +5,28 @@
   <title>GOSEVA | Vivaha Dina</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #fffacd;
-      color: #050829;
-      margin: 0;
-      padding: 0;
-    }
-    .contact-box {
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    form label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
+    body { font-family: Arial, sans-serif; background: #fffacd; color: #050829; margin: 0; padding: 0; }
+    .contact-box { max-width: 600px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
+    form label { display: block; margin-top: 15px; font-weight: bold; }
     form input[type="text"],
     form input[type="email"],
     form input[type="date"],
     form input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 1rem;
+      width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem;
     }
     form input[type="submit"] {
-      margin-top: 20px;
-      background-color: #ffd500;
-      border: none;
-      padding: 15px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 8px;
-      color: #050829;
-      transition: background-color 0.3s ease;
+      margin-top: 20px; background-color: #ffd500; border: none; padding: 15px; font-size: 18px;
+      font-weight: bold; cursor: pointer; border-radius: 8px; color: #050829; transition: background-color 0.3s ease;
     }
-    form input[type="submit"]:hover {
-      background-color: #ffcc00;
-    }
+    form input[type="submit"]:hover { background-color: #ffcc00; }
     #generateQrButton {
-      background-color: #ffd500;
-      padding: 15px 30px;
-      font-size: 18px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease-in-out;
-      color: #050829;
-      border-radius: 8px;
-      margin: 30px auto 0;
-      display: block;
+      background-color: #ffd500; padding: 15px 30px; font-size: 18px; border: none; font-weight: bold;
+      cursor: pointer; transition: all 0.3s ease-in-out; color: #050829; border-radius: 8px;
+      margin: 30px auto 0; display: block;
     }
     #confirmationMessage {
-      color: green;
-      text-align: center;
-      margin-top: 20px;
-      display: none;
-      font-weight: 600;
+      color: green; text-align: center; margin-top: 20px; display: none; font-weight: 600;
     }
   </style>
 </head>
@@ -79,7 +35,7 @@
   <h1 style="text-align:center;">गोसेवा - Vivaha Dina Payment</h1>
 
   <div class="contact-box">
-    <form id="paymentForm" onsubmit="submitForm(event)" autocomplete="off">
+    <form id="paymentForm" autocomplete="off">
       <label for="name">Full Name</label>
       <input type="text" name="name" id="name" required />
 
@@ -107,7 +63,7 @@
   </div>
 
 <script>
-  // --- Aadhaar validation (Verhoeff algorithm) ---
+  // Verhoeff Aadhaar validation
   const d = [
     [0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],[3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],
     [5,9,8,7,6,0,4,3,2,1],[6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],[9,8,7,6,5,4,3,2,1,0]
@@ -157,20 +113,28 @@
 
   let formSubmitted = false;
 
-  function submitForm(event){
+  // Demo mode: only validation and unlock payment; backend POST disabled to avoid CORS errors.
+  document.getElementById("paymentForm").onsubmit = function(event){
     event.preventDefault();
     if(formSubmitted){ alert("You have already submitted the form."); return; }
     if(!validateInputs()) return;
-    const formData = new FormData(document.getElementById("paymentForm"));
-    const url = "https://script.google.com/macros/s/AKfycbyNg4s601rO4ZuJjIPp-2G76ltQQNjgqMRUMgin2aM-xvUFAjD2mPWvVLNoVf2DCyRznw/exec";
-    fetch(url, {method:"POST", body:formData}).then(() => {
-      formSubmitted = true;
-      document.getElementById("confirmationMessage").style.display = "block";
-      document.getElementById("generateQrButton").disabled = false;
-    }).catch(() => {
-      alert("Failed to submit. Try again.");
-    });
-  }
+
+    // --- To enable Google Apps Script backend, replace block below as comments show ---
+    // const formData = new FormData(document.getElementById("paymentForm"));
+    // const url = "YOUR-APPS-SCRIPT-ENDPOINT-HERE";
+    // fetch(url,{method:"POST",body:formData}).then(() => {
+    //   formSubmitted = true;
+    //   document.getElementById("confirmationMessage").style.display = "block";
+    //   document.getElementById("generateQrButton").disabled = false;
+    // }).catch(() => {
+    //   alert("Failed to submit the form. Please try again.");
+    // });
+
+    // Client-side demo/unlock payment
+    formSubmitted = true;
+    document.getElementById("confirmationMessage").style.display = "block";
+    document.getElementById("generateQrButton").disabled = false;
+  };
 
   document.getElementById('generateQrButton').onclick = function(){
     if(!formSubmitted){
