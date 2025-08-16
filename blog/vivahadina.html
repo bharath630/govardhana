@@ -1,3 +1,50 @@
+---
+title: Vivaha Dina
+heading: गावः सुरभिर्नो मुर्धन
+description: Submit your details and generate a UPI QR code for payment
+---
+
+<div class="contact-box" style="display: flex; justify-content: center; align-items: center;">
+  <form id="paymentForm" onsubmit="submitForm(event)">
+    <label for="name">Full Name</label>
+    <input type="text" name="name" id="name" placeholder="Enter your name..." required/>
+
+    <label for="email">Email Address</label>
+    <input type="email" name="email" id="email" placeholder="Enter your email..." required />
+
+    <label for="adhar">Aadhar Number</label>
+    <input type="text" name="adhar" id="adhar" placeholder="Enter your Aadhar..." required />
+
+    <label for="phone">Phone Number</label>
+    <input type="text" name="phone" id="phone" placeholder="Enter your phone number..." required />
+
+    <label for="aniversary">Date of Anniversary </label>
+    <input type="date" name="aniversary" id="aniversary"  required />
+  
+    <label for="amount">Enter the amount </label>
+    <input type="number" name="amount" id="amount" placeholder="Enter any amount of your wish for gograsa samarpana..." required>
+
+    <input type="submit" value="Submit" />
+  </form>
+
+  <div id="confirmationMessage" style="display:none; color: green;">
+    <br><br>Form submitted successfully! Kindly generate the QR and complete the payment 
+  </div>
+</div>
+
+<br><br><br>
+
+<div style="text-align: center;">
+  <button 
+    id="generateQrButton"
+    class="pulse-button"
+    style="background-color: #ffd500; padding: 15px 30px; font-size: 18px; 
+           border: none; font-weight: bold; cursor: pointer; transition: all 0.3s ease-in-out; 
+           color: #050829; border-radius: 8px;">
+    Click here to Pay!
+  </button>
+</div>
+
 <script>
 // Multiplication table 'd'
 var d = [
@@ -78,11 +125,11 @@ function validate_adhar(adhar) {
   }
 }
 
-// Function to validate inputs and handle form submission
+// Function to validate inputs before form submission
 function validateInputs() {
   const email = document.getElementById('email').value;
   const adhar = document.getElementById('adhar').value;
-  const phone = document.getElementById('text').value;
+  const phone = document.getElementById('phone').value;
 
   // Email validation (basic pattern)
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -97,17 +144,19 @@ function validateInputs() {
     return false;
   }
 
+  // Phone number validation (10 digit Indian mobile)
   const phonePattern = /^[6-9]\d{9}$/;
-
   if (!phonePattern.test(phone) || /^(\d)\1{9}$/.test(phone)) {
     alert("Please enter a valid 10-digit Indian mobile number.");
     return false;
   }
+
   return true;
 }
 
 let formSubmitted = false;
 
+// Function to handle form submission
 function submitForm(event) {
   event.preventDefault(); // Prevent default form submission
   
@@ -116,36 +165,31 @@ function submitForm(event) {
     return;
   }
 
-  // Run validation before submission
   if (!validateInputs()) return;
 
-  // Gather form data
   const formData = new FormData(document.getElementById("paymentForm"));
   const url = "https://script.google.com/macros/s/AKfycbyNg4s601rO4ZuJjIPp-2G76ltQQNjgqMRUMgin2aM-xvUFAjD2mPWvVLNoVf2DCyRznw/exec";
 
-  // Send form data via fetch (AJAX)
   fetch(url, {
     method: "POST",
     body: formData
-  })
-  
-  // Simulate server-side processing with a 3-second delay
+  });
+
+  // Simulate server-side delay and then show confirmation
   setTimeout(() => {
-      // Show confirmation message
-      formSubmitted = true;
-      document.getElementById("confirmationMessage").style.display = "block";
-      // Do not reset the form to retain values for QR code generation
+    formSubmitted = true;
+    document.getElementById("confirmationMessage").style.display = "block";
+    // Keep form data so user can generate QR code
   }, 3000);
 }
 
-// Unified click handler for QR code generation and payment redirection
+// Unified click handler for payment button and QR code generation
 document.getElementById('generateQrButton').onclick = function () {
   const adharNumber = document.getElementById('adhar').value;
   const donorName = document.getElementById('name').value;
-  const donorPhone = document.getElementById('text').value;
+  const donorPhone = document.getElementById('phone').value;
   const donorEmail = document.getElementById('email').value;
 
-  // Validate required inputs
   if (!adharNumber) {
     alert("Please enter your Aadhar number.");
     return;
@@ -173,13 +217,13 @@ document.getElementById('generateQrButton').onclick = function () {
     return;
   }
 
-  // Build UPI payment data string with URL encoding
+  // Build UPI data string with URL encoding
   const upiData = `upi://pay?pa=govardhanylp@sbi&am=${encodeURIComponent(amount.toFixed(2))}&cu=INR&tn=${encodeURIComponent(donorPhone)}`;
 
-  // Build QR code URL
+  // QR code URL
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(upiData)}`;
 
-  // Device detection and payment process
+  // Detect device and proceed with payment flow
   detectDeviceAndProceed(amount, adharNumber, qrCodeUrl, upiData);
 
   function detectDeviceAndProceed(amount, adharNumber, qrCodeUrl, upiData) {
@@ -194,21 +238,21 @@ document.getElementById('generateQrButton').onclick = function () {
       !isTouchScreen && (/windows/.test(userAgent) || /macintosh|mac os x/.test(userAgent));
 
     if (isAndroid()) {
-      // Redirect to UPI app on Android
+      // Redirect directly to UPI app on Android devices
       window.location.href = upiData;
     } else if (isIphone()) {
-      // Show UPI app options on iOS
+      // Show payment app options popup on iOS devices
       redirectToUPIAppOnIOS(amount);
     } else if (isDesktop()) {
-      // Show QR code on desktop
+      // Show QR code in new window on desktop
       openQrWindow(qrCodeUrl);
     } else {
-      // Default to QR code
+      // Default fallback: show QR code
       openQrWindow(qrCodeUrl);
     }
   }
 
-  // iOS payment options popup with encoded URLs
+  // Popup for UPI app options on iOS with encoded URLs
   function redirectToUPIAppOnIOS(amount) {
     const encodedAmount = encodeURIComponent(amount.toFixed(2));
     const encodedPhone = encodeURIComponent(donorPhone);
@@ -269,7 +313,7 @@ document.getElementById('generateQrButton').onclick = function () {
           <div class="payment-container">
             <h1>Select preferred UPI App</h1><br><br><br>
             ${appLinks.map(app => `
-              <a href="${app.url}" class="payment-button" target="_blank" rel="noopener">
+              <a href="${app.url}" class="payment-button" target="_blank" rel="noopener noreferrer">
                 <img src="/images/${app.name.toLowerCase().replace(/\s/g, '')}.png" alt="${app.name}">
                 <span>${app.name}</span>
               </a>
@@ -281,7 +325,7 @@ document.getElementById('generateQrButton').onclick = function () {
     optionsHtml.document.close();
   }
 
-  // Open QR code in new window for desktop or fallback
+  // Function to open QR code in new window for desktop/fallback
   function openQrWindow(qrCodeUrl) {
     const qrWindow = window.open('', '_blank', 'width=500,height=600');
     qrWindow.document.write(`
@@ -299,4 +343,14 @@ document.getElementById('generateQrButton').onclick = function () {
     qrWindow.document.close();
   }
 };
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2ZJXCX9BQF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2ZJXCX9BQF');
 </script>
